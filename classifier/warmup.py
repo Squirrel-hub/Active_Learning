@@ -11,13 +11,13 @@ from annotator.warmup import warmup_weights
 
 
 
-def warmedup_classifiers(Classifiers, BOOT,annotator_model,W_optimal):
+def warmedup_classifiers(Classifiers, BOOT,annotator_model,W_optimal,device):
     
     x_boot, y_boot, y_annot_boot = BOOT
     classifier_model_AM,classifier_model_WO,classifier_model_M,classifier_model_TL = Classifiers
     
     input = x_boot.to_numpy()
-    input = torch.tensor(input,dtype = torch.float32)
+    input = torch.tensor(input,dtype = torch.float32).to(device)
     output = annotator_model(input)
 
     warmup_annot_pred_1 = []
