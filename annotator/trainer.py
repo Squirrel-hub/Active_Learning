@@ -21,20 +21,21 @@ def annotator_training(model_annotator, new_active_x, new_active_w, new_active_m
     for epoch in range(n_epochs):
         epoch_loss = 0
         for x, y, mask in trainloader:
-            x = torch.tensor(x,dtype=torch.float32)
+            x = torch.tensor(x,dtype=torch.float32).to(device)
             #clear gradient 
+            mask = mask.to(device)
             optimizer.zero_grad()
             #make a prediction 
             z=model_annotator(x)
             y = y.squeeze(1)
             y = y.type(torch.FloatTensor).to(device)
-            x1 = torch.mul(mask,z)
-            x2 = torch.mul(mask,y)
+            x1 = torch.mul(mask,z).to(device)
+            x2 = torch.mul(mask,y).to(device)
             loss = criterion_annotator(x1,x2)
                 
             # calculate gradients of parameters 
             loss.backward()
-            epoch_loss += loss.data
+            epoch_loss += loss.to('cpu').data
             # update parameters 
             optimizer.step()
             
