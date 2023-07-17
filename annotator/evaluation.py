@@ -16,20 +16,21 @@ def eval_annotator_model(annotator_model, x_data, y_data, y_annot_data, inst_ann
     y_annot_data = y_annot_data.to_numpy()
     y_annot_data = torch.from_numpy(y_annot_data).to(device)
 
-    x_data = torch.tensor(x_data,dtype=torch.float32).clone().detach()
-    y_data = y_data.detach().numpy()
+    x_data = torch.tensor(x_data,dtype=torch.float32).clone().detach().to(device)
+    y_data = y_data.detach().to('cpu').numpy()
 
     output = annotator_model(x_data)
     
     MO = []
     WO = []
-        
-    max_index = torch.argmax(torch.mul(output,inst_annot),dim=1)
+      
+    
+    max_index = torch.argmax(torch.mul(output,inst_annot.to(device)),dim=1)
     
     m = inst_annot.shape[1]
 
     for i in range(y_annot_data.shape[0]):
-        MO.append(y_annot_data[i][max_index[i]])
+        MO.append(y_annot_data[i][max_index[i]].to('cpu'))
         
         average_weights = dict()
         for j in range(m):
@@ -68,21 +69,21 @@ def eval_annotator_model(annotator_model, x_data, y_data, y_annot_data, inst_ann
 
     return a1,f1,a2,f2
 
-def annot_eval_after_warmup(annotator_model, BOOT, data_a):
+def annot_eval_after_warmup(annotator_model, BOOT, data_a,device):
     x_boot, y_boot, y_annot_boot = BOOT
     inst_annot = np.ones_like(y_annot_boot)
-    inst_annot = torch.from_numpy(inst_annot)
-    a1,f1,a2,f2 = eval_annotator_model(annotator_model, x_boot, y_boot, y_annot_boot,inst_annot)
+    inst_annot = torch.from_numpy(inst_annot).to(device)
+    a1,f1,a2,f2 = eval_annotator_model(annotator_model, x_boot, y_boot, y_annot_boot,inst_annot,device)
     data_a[0]['Annotator Accuracy after Warmup on Boot Data'] = a1
     data_a[0]['Annotator F1 Score after Warmup on Boot Data'] = f1
     data_a[1]['Annotator Accuracy after Warmup on Boot Data'] = a2
     data_a[1]['Annotator F1 Score after Warmup on Boot Data'] = f2
     
 
-def annot_eval_after_training(annotator_model,new_active_x,new_active_y_true,new_active_y_annot,new_active_mask,data_a):
+def annot_eval_after_training(annotator_model,new_active_x,new_active_y_true,new_active_y_annot,new_active_mask,data_a,device):
     new_active_mask = new_active_mask.to_numpy()
     new_active_mask = torch.from_numpy(new_active_mask)
-    a1,f1,a2,f2 = eval_annotator_model(annotator_model, new_active_x, new_active_y_true, new_active_y_annot,new_active_mask)
+    a1,f1,a2,f2 = eval_annotator_model(annotator_model, new_active_x, new_active_y_true, new_active_y_annot,new_active_mask,device)
     data_a[0]['Annotator Accuracy after Training'] = a1
     data_a[0]['Annotator F1 Score after Training'] = f1
     data_a[1]['Annotator Accuracy after Training'] = a2
