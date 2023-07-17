@@ -67,12 +67,12 @@ def get_instance_annot_index(classifier_model,annotator_model,x_active,inst_anno
     
     output_a = annotator_model(torch.from_numpy(x_active.loc[index].to_numpy()).to(device).float()) # Annotator Model weights for a given instance
 
-    output_a_1 = torch.mul(1-inst_annot[row_index],output_a) ## CHANGE VARIABLE NAMES
+    output_a_1 = torch.mul(1-inst_annot[row_index].to(device),output_a) ## CHANGE VARIABLE NAMES
     annot_index_new = torch.argmax(output_a_1,dim=0) # Index of Annotator with max weight which is not queried yet for that particular instance
 
     inst_annot[row_index][annot_index_new] = 1
 
-    output_a_2 = torch.mul(inst_annot[row_index],output_a) ## CHANGE VARIABLE NAMES
+    output_a_2 = torch.mul(inst_annot[row_index].to(device),output_a) ## CHANGE VARIABLE NAMES
     annot_index = torch.argmax(output_a_2,dim=0) # Index of Annotator with max weight amongst all queried annotators for that particular instance
     return index_frame,index,row_index,annot_index,output_a
 
@@ -95,7 +95,7 @@ def get_labels(classifier_model,annotator_model,active_data,collected_data,inst_
     annot_index_opt = torch.argmax(torch.mul(torch.tensor(w_new[index]),inst_annot[row_index])) # Annotator Index of Current Instance as per the highest W_optimal obtained from only queried annotators
     y_new_opt[index] = y_annot_active.loc[index][annot_index_opt.item()] # Label of Current Instance as per the highest W_optimal obtained from only queried annotators
     y_maj = np.array(y_annot_active.loc[index]).copy()
-    y_maj = np.delete(y_maj, np.where(inst_annot[row_index] == 0))
+    y_maj = np.delete(y_maj, np.where(inst_annot[row_index].to('cpu') == 0))
     unique, frequency = np.unique(y_maj,return_counts = True)
     unique = unique.tolist()
     frequency = frequency.tolist()
@@ -228,21 +228,21 @@ def get_labels_KB(classifier_model,annotator_model,Knowledge_Base,similar_instan
     y_new[index] = Lab
 
     if torch.sum(inst_annot[row_index]).item() == 1:
-        w_new[index] = inst_annot[row_index].numpy()
+        w_new[index] = inst_annot[row_index].to('cpu').numpy()
     else:
-        w_new[index] = optimal_weights(y_annot_active.loc[index].to_numpy(),inst_annot[row_index]) # Optimal Weights for this particular instance based on only queried annotators
+        w_new[index] = optimal_weights(y_annot_active.loc[index].to_numpy(),inst_annot[row_index].to('cpu')) # Optimal Weights for this particular instance based on only queried annotators
     
     
-    annot_index_opt = torch.argmax(torch.mul(torch.tensor(w_new[index]),inst_annot[row_index])) # Annotator Index of Current Instance as per the highest W_optimal obtained from only queried annotators
+    annot_index_opt = torch.argmax(torch.mul(torch.tensor(w_new[index]),inst_annot[row_index].to('cpu'))) # Annotator Index of Current Instance as per the highest W_optimal obtained from only queried annotators
     y_new_opt[index] = y_annot_active.loc[index][annot_index_opt.item()] # Label of Current Instance as per the highest W_optimal obtained from only queried annotators
     y_maj = np.array(y_annot_active.loc[index]).copy()
-    y_maj = np.delete(y_maj, np.where(inst_annot[row_index] == 0))
+    y_maj = np.delete(y_maj, np.where(inst_annot[row_index].to('cpu') == 0))
     unique, frequency = np.unique(y_maj,return_counts = True)
     unique = unique.tolist()
     frequency = frequency.tolist()
     majority_index = np.argmax(frequency) # Index of the majority Label. Note: All Annotators are considered for the instance
     y_new_majority[index] = unique[majority_index] # Majority Label of the given Instance
-    masks_new[index] = inst_annot[row_index].numpy() # Mask representing all annotators which are queried for this Instance
+    masks_new[index] = inst_annot[row_index].to('cpu').numpy() # Mask representing all annotators which are queried for this Instance
     collected_data = [x_new,y_true,y_annot,y_new,w_new,y_new_opt,y_new_majority,masks_new]
 
     return index_frame,index,row_index,annotator_AM,collected_data,epoch_iter
@@ -273,7 +273,7 @@ def AL_train_cycle_KB(Classifiers,Classifier_y_boot,annotator_model,Knowledge_Ba
 
         full = 0
         inst_annot = np.zeros_like(y_annot_active)
-        inst_annot = torch.from_numpy(inst_annot)
+        inst_annot = torch.from_numpy(inst_annot).to(device)
 
         collected_active_data = []
         loss = []
@@ -329,7 +329,7 @@ def AL_train_cycle_KB(Classifiers,Classifier_y_boot,annotator_model,Knowledge_Ba
             annotator_model = Annotator_2(input_dim,H_dim,output_dim)
             annotator_model = annotator_model.to(device)
             annotator_model, loss_list = annotator_training(annotator_model, new_active_x, new_active_w, \
-                            new_active_mask,batch_size,n_epochs, learning_rate, device = 'cpu')
+                            new_active_mask,batch_size,n_epochs, learning_rate, device = device)
             
             loss.append(loss_list[-1])
 
@@ -348,7 +348,8 @@ def AL_train_cycle_KB(Classifiers,Classifier_y_boot,annotator_model,Knowledge_Ba
                 x_active = x_active.drop(labels = index, axis = 0)
                 y_active = y_active.drop(labels = index, axis = 0)
                 y_annot_active = y_annot_active.drop(labels = index, axis = 0)
-                inst_annot = np.delete(inst_annot,row_index,0)
+                inst_annot_new = np.delete(inst_annot.to('cpu'),row_index,0)
+                inst_annot = inst_annot_new
             
             epoch = epoch + epoch_iter
             pbar.update(epoch_iter)
@@ -459,7 +460,7 @@ def AL_train_cycle(Classifiers,Classifier_y_boot,annotator_model,BOOT,ACTIVE,VAL
                 x_active = x_active.drop(labels = index, axis = 0)
                 y_active = y_active.drop(labels = index, axis = 0)
                 y_annot_active = y_annot_active.drop(labels = index, axis = 0)
-                inst_annot = np.delete(inst_annot,row_index,0)
+                inst_annot = np.delete(inst_annot.to('cpu'),row_index,0)
             
             #print('epoch {}, loss {}'.format(epoch, loss.item()))
         classifier_model_AM.train(new_active_x,new_active_y)
