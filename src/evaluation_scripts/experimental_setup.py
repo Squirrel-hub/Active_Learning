@@ -11,7 +11,7 @@ import math
 import sys
 import pickle
 
-sys.path.insert(0,'/Users/kaizer/Documents/Active Learning/Code/MAAL/Multi-Annotator-HIL')
+sys.path.insert(0,'/content/Active_Learning')
 
 from argparse import ArgumentParser
 
@@ -100,21 +100,21 @@ def run(results_path, data_set, query_strategy, budget, test_ratio, seed):
 
 
 
-    with open("/Users/kaizer/Documents/Active Learning/Code/MAAL/Multi-Annotator-HIL/data_processing/X_train", "wb") as fp:   #Pickling
+    with open("data_processing/X_train", "wb") as fp:   #Pickling
        pickle.dump(X_train, fp)
-    with open("/Users/kaizer/Documents/Active Learning/Code/MAAL/Multi-Annotator-HIL/data_processing/X_test", "wb") as fp:   #Pickling
+    with open("data_processing/X_test", "wb") as fp:   #Pickling
        pickle.dump(X_test, fp)
-    with open("/Users/kaizer/Documents/Active Learning/Code/MAAL/Multi-Annotator-HIL/data_processing/y_true_train", "wb") as fp:   #Pickling
+    with open("data_processing/y_true_train", "wb") as fp:   #Pickling
        pickle.dump(y_true_train, fp)
-    with open("/Users/kaizer/Documents/Active Learning/Code/MAAL/Multi-Annotator-HIL/data_processing/y_true_test", "wb") as fp:   #Pickling
+    with open("data_processing/y_true_test", "wb") as fp:   #Pickling
        pickle.dump(y_true_test, fp)
-    with open("/Users/kaizer/Documents/Active Learning/Code/MAAL/Multi-Annotator-HIL/data_processing/y_train", "wb") as fp:   #Pickling
+    with open("data_processing/y_train", "wb") as fp:   #Pickling
        pickle.dump(y_train, fp)
-    with open("/Users/kaizer/Documents/Active Learning/Code/MAAL/Multi-Annotator-HIL/data_processing/y_test", "wb") as fp:   #Pickling
+    with open("data_processing/y_test", "wb") as fp:   #Pickling
        pickle.dump(y_test, fp)
-    with open("/Users/kaizer/Documents/Active Learning/Code/MAAL/Multi-Annotator-HIL/data_processing/index_frame_train", "wb") as fp:   #Pickling
+    with open("data_processing/index_frame_train", "wb") as fp:   #Pickling
        pickle.dump(index_frame_train, fp)
-    with open("/Users/kaizer/Documents/Active Learning/Code/MAAL/Multi-Annotator-HIL/data_processing/index_frame_test", "wb") as fp:   #Pickling
+    with open("data_processing/index_frame_test", "wb") as fp:   #Pickling
        pickle.dump(index_frame_test, fp)
     # --------------------------------------------- CSV NAMES ----------------------------------------------------------
     csv_name = '{}_{}_{}_{}_{}.csv'.format(data_set, query_strategy, budget_str, test_ratio, seed)
@@ -189,7 +189,7 @@ def run(results_path, data_set, query_strategy, budget, test_ratio, seed):
 
     instance_annotator_pair = dict()
 
-    with open("/Users/kaizer/Documents/Active Learning/Code/MAAL/Multi-Annotator-HIL/data_processing/budget", "wb") as fp:   #Pickling
+    with open("data_processing/budget", "wb") as fp:   #Pickling
        pickle.dump(budget, fp)
     
     instances = []
@@ -241,11 +241,11 @@ def run(results_path, data_set, query_strategy, budget, test_ratio, seed):
     df.to_csv('{}/{}'.format(results_path, csv_name), index_label='index')
     results_dataframe_path = '{}/{}'.format(results_path, csv_name)
     
-    with open("/Users/kaizer/Documents/Active Learning/Code/MAAL/Multi-Annotator-HIL/data_processing/MAPAL_results_path", "wb") as fp:   #Pickling
+    with open("data_processing/MAPAL_results_path", "wb") as fp:   #Pickling
        pickle.dump(results_dataframe_path, fp)
-    with open("/Users/kaizer/Documents/Active Learning/Code/MAAL/Multi-Annotator-HIL/data_processing/instance_annotator_pair", "wb") as fp:   #Pickling
+    with open("data_processing/instance_annotator_pair", "wb") as fp:   #Pickling
        pickle.dump(instance_annotator_pair, fp)
-    with open("/Users/kaizer/Documents/Active Learning/Code/MAAL/Multi-Annotator-HIL/data_processing/instances", "wb") as fp:   #Pickling
+    with open("data_processing/instances", "wb") as fp:   #Pickling
        pickle.dump(instances, fp)
 
 
